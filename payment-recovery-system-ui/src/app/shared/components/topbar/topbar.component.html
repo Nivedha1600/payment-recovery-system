@@ -1,0 +1,39 @@
+<header class="topbar">
+  <div class="topbar-content">
+    <div class="topbar-left">
+      <h1 class="page-title">Payment Recovery System</h1>
+    </div>
+
+    <div class="topbar-right">
+      <div class="user-info">
+        <div class="user-details">
+          <span class="username">{{ getUserDisplayName() }}</span>
+          <span class="user-role">{{ getRoleDisplayName() }}</span>
+        </div>
+        <div class="user-avatar">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn-icon" (click)="goToSettings()" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+          </svg>
+        </button>
+        <button class="btn-icon" (click)="logout()" title="Logout">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+

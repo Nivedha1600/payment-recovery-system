@@ -1,0 +1,39 @@
+<div class="access-denied-container">
+  <div class="access-denied-card">
+    <div class="icon-container">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+
+    <h1>Access Denied</h1>
+    
+    <p class="message">
+      You don't have permission to access this page.
+    </p>
+
+    <div *ngIf="userRole" class="role-info">
+      <p class="role-text">
+        Your role: <strong>{{ userRole }}</strong>
+      </p>
+    </div>
+
+    <div *ngIf="attemptedUrl" class="attempted-url">
+      <p class="url-text">
+        Attempted URL: <code>{{ attemptedUrl }}</code>
+      </p>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" (click)="goToDashboard()">
+        Go to Dashboard
+      </button>
+      <button *ngIf="attemptedUrl" class="btn btn-secondary" (click)="goBack()">
+        Go Back
+      </button>
+    </div>
+  </div>
+</div>
+

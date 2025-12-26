@@ -1,0 +1,129 @@
+<div class="company-management-container">
+  <div class="page-header">
+    <h1>Company Management</h1>
+    <p class="subtitle">View and manage registered companies</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="search-section">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="onSearch()"
+        placeholder="Search companies by name or GST number..."
+        class="search-input"
+      />
+      <button class="btn btn-primary" (click)="onSearch()" [disabled]="isLoading">
+        Search
+      </button>
+      <button *ngIf="searchTerm" class="btn btn-secondary" (click)="clearSearch()">
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading && companies.length === 0" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading companies...</p>
+  </div>
+
+  <!-- Companies Table -->
+  <div *ngIf="!isLoading || companies.length > 0" class="companies-table-container">
+    <table class="companies-table">
+      <thead>
+        <tr>
+          <th>Company Name</th>
+          <th>GST Number</th>
+          <th>Status</th>
+          <th>Users</th>
+          <th>Invoices</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let company of companies" [class.inactive]="!company.isActive">
+          <td>
+            <strong>{{ company.name }}</strong>
+          </td>
+          <td>
+            <span *ngIf="company.gstNumber">{{ company.gstNumber }}</span>
+            <span *ngIf="!company.gstNumber" class="text-muted">-</span>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="company.isActive" [class.inactive]="!company.isActive">
+              {{ company.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td>{{ company.userCount ?? 0 }}</td>
+          <td>{{ company.invoiceCount ?? 0 }}</td>
+          <td>{{ formatDate(company.createdAt) }}</td>
+          <td>
+            <div class="action-buttons">
+              <button
+                *ngIf="company.isActive"
+                class="btn btn-danger btn-sm"
+                (click)="deactivateCompany(company)"
+                [disabled]="updatingCompanyId === company.id"
+                title="Deactivate Company"
+              >
+                <span *ngIf="updatingCompanyId !== company.id">Deactivate</span>
+                <span *ngIf="updatingCompanyId === company.id">...</span>
+              </button>
+              <button
+                *ngIf="!company.isActive"
+                class="btn btn-success btn-sm"
+                (click)="activateCompany(company)"
+                [disabled]="updatingCompanyId === company.id"
+                title="Activate Company"
+              >
+                <span *ngIf="updatingCompanyId !== company.id">Activate</span>
+                <span *ngIf="updatingCompanyId === company.id">...</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="companies.length === 0 && !isLoading" class="empty-state">
+      <p>No companies found</p>
+      <p class="text-muted" *ngIf="searchTerm">Try adjusting your search criteria</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="companies.length > 0" class="pagination">
+    <div class="pagination-info">
+      Showing {{ (currentPage * pageSize) + 1 }} to {{ Math.min((currentPage + 1) * pageSize, totalCompanies) }} of {{ totalCompanies }} companies
+    </div>
+    <div class="pagination-controls">
+      <button
+        class="btn btn-secondary"
+        (click)="previousPage()"
+        [disabled]="!hasPreviousPage() || isLoading"
+      >
+        Previous
+      </button>
+      <span class="page-info">
+        Page {{ currentPage + 1 }} of {{ getTotalPages() }}
+      </span>
+      <button
+        class="btn btn-secondary"
+        (click)="nextPage()"
+        [disabled]="!hasNextPage() || isLoading"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>
+

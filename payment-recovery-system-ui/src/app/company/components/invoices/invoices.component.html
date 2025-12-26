@@ -1,0 +1,116 @@
+<div class="invoices-container">
+  <div class="page-header">
+    <h1>Invoices</h1>
+    <p class="subtitle">Manage your invoices</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <label for="statusFilter">Filter by Status:</label>
+      <select
+        id="statusFilter"
+        [(ngModel)]="selectedStatus"
+        (change)="onStatusChange()"
+        class="filter-select"
+      >
+        <option *ngFor="let option of statusOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading && invoices.length === 0" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading invoices...</p>
+  </div>
+
+  <!-- Invoices Table -->
+  <div *ngIf="!isLoading || invoices.length > 0" class="table-container">
+    <table class="invoices-table">
+      <thead>
+        <tr>
+          <th>Invoice No</th>
+          <th>Customer</th>
+          <th>Amount</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let invoice of invoices">
+          <td>
+            <strong>{{ invoice.invoiceNumber || 'N/A' }}</strong>
+          </td>
+          <td>{{ invoice.customerName || 'N/A' }}</td>
+          <td>{{ formatCurrency(invoice.amount) }}</td>
+          <td>{{ formatDate(invoice.dueDate) }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(invoice.status)">
+              {{ getStatusLabel(invoice.status) }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button
+                class="btn btn-primary btn-sm"
+                (click)="viewInvoice(invoice)"
+                title="View Invoice"
+              >
+                View
+              </button>
+              <button
+                *ngIf="canMarkAsPaid(invoice)"
+                class="btn btn-success btn-sm"
+                (click)="markAsPaid(invoice)"
+                title="Mark as Paid"
+              >
+                Mark as Paid
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="invoices.length === 0 && !isLoading">
+          <td colspan="6" class="empty-row">
+            No invoices found
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="invoices.length > 0" class="pagination">
+    <div class="pagination-info">
+      Showing {{ (currentPage * pageSize) + 1 }} to {{ Math.min((currentPage + 1) * pageSize, totalInvoices) }} of {{ totalInvoices }} invoices
+    </div>
+    <div class="pagination-controls">
+      <button
+        class="btn btn-secondary"
+        (click)="previousPage()"
+        [disabled]="!hasPreviousPage() || isLoading"
+      >
+        Previous
+      </button>
+      <span class="page-info">
+        Page {{ currentPage + 1 }} of {{ getTotalPages() }}
+      </span>
+      <button
+        class="btn btn-secondary"
+        (click)="nextPage()"
+        [disabled]="!hasNextPage() || isLoading"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>
+

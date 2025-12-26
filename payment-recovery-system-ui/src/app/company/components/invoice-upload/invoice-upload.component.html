@@ -1,0 +1,191 @@
+<div class="invoice-upload-container">
+  <div class="page-header">
+    <h1>Upload Invoice</h1>
+    <p class="subtitle">Upload invoice file or enter invoice details manually</p>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="uploadSuccess" class="alert alert-success">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    {{ successMessage }}
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Upload Form -->
+  <div class="upload-form-container">
+    <!-- Toggle between file upload and manual entry -->
+    <div class="entry-mode-toggle">
+      <button
+        class="toggle-btn"
+        [class.active]="!useManualEntry"
+        (click)="toggleEntryMode()"
+        [disabled]="isUploading"
+      >
+        Upload File
+      </button>
+      <button
+        class="toggle-btn"
+        [class.active]="useManualEntry"
+        (click)="toggleEntryMode()"
+        [disabled]="isUploading"
+      >
+        Manual Entry
+      </button>
+    </div>
+
+    <!-- File Upload Section -->
+    <div *ngIf="!useManualEntry" class="upload-section">
+      <div class="file-upload-area" [class.has-file]="selectedFile">
+        <input
+          type="file"
+          id="fileInput"
+          [accept]="acceptedFileTypes"
+          (change)="onFileSelected($event)"
+          [disabled]="isUploading"
+          class="file-input"
+        />
+        
+        <div *ngIf="!selectedFile" class="upload-placeholder">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <p class="upload-text">Click to upload or drag and drop</p>
+          <p class="upload-hint">PDF, PNG, JPG, DOC, DOCX, XLS, XLSX (Max 10MB)</p>
+          <label for="fileInput" class="upload-label">Choose File</label>
+        </div>
+
+        <div *ngIf="selectedFile" class="file-selected">
+          <div class="file-info">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+            <div class="file-details">
+              <p class="file-name">{{ fileName }}</p>
+              <p class="file-size">{{ formatFileSize(selectedFile.size) }}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn-remove"
+            (click)="removeFile()"
+            [disabled]="isUploading"
+            title="Remove file"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Entry Section -->
+    <div *ngIf="useManualEntry" class="manual-entry-section">
+      <form class="manual-form">
+        <div class="form-group">
+          <label for="invoiceNumber">Invoice Number *</label>
+          <input
+            type="text"
+            id="invoiceNumber"
+            [(ngModel)]="manualForm.invoiceNumber"
+            name="invoiceNumber"
+            class="form-control"
+            placeholder="Enter invoice number"
+            [disabled]="isUploading"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="customerId">Customer (Optional)</label>
+          <input
+            type="number"
+            id="customerId"
+            [(ngModel)]="manualForm.customerId"
+            name="customerId"
+            class="form-control"
+            placeholder="Customer ID"
+            [disabled]="isUploading"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="invoiceDate">Invoice Date *</label>
+            <input
+              type="date"
+              id="invoiceDate"
+              [(ngModel)]="manualForm.invoiceDate"
+              name="invoiceDate"
+              class="form-control"
+              [disabled]="isUploading"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="dueDate">Due Date (Optional)</label>
+            <input
+              type="date"
+              id="dueDate"
+              [(ngModel)]="manualForm.dueDate"
+              name="dueDate"
+              class="form-control"
+              [disabled]="isUploading"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="amount">Amount *</label>
+          <input
+            type="number"
+            id="amount"
+            [(ngModel)]="manualForm.amount"
+            name="amount"
+            class="form-control"
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            [disabled]="isUploading"
+          />
+        </div>
+      </form>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="navigateToInvoices()"
+        [disabled]="isUploading"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="onSubmit()"
+        [disabled]="!isFormValid() || isUploading"
+      >
+        <span *ngIf="!isUploading">
+          {{ useManualEntry ? 'Create Invoice' : 'Upload Invoice' }}
+        </span>
+        <span *ngIf="isUploading">
+          <span class="spinner-small"></span> Processing...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,84 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Payment Recovery System</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    <!-- Session Expired Message -->
+    <div *ngIf="sessionExpired" class="alert alert-warning" role="alert">
+      Your session has expired. Please login again.
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-error" role="alert">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Username Field -->
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          formControlName="username"
+          class="form-control"
+          [class.invalid]="f['username'].invalid && f['username'].touched"
+          placeholder="Enter your username"
+          autocomplete="username"
+        />
+        <div
+          *ngIf="f['username'].invalid && f['username'].touched"
+          class="error-message"
+        >
+          <span *ngIf="f['username'].errors?.['required']">Username is required</span>
+          <span *ngIf="f['username'].errors?.['minlength']">
+            Username must be at least 3 characters
+          </span>
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          class="form-control"
+          [class.invalid]="f['password'].invalid && f['password'].touched"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+        />
+        <div
+          *ngIf="f['password'].invalid && f['password'].touched"
+          class="error-message"
+        >
+          <span *ngIf="f['password'].errors?.['required']">Password is required</span>
+          <span *ngIf="f['password'].errors?.['minlength']">
+            Password must be at least 6 characters
+          </span>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="isLoading || loginForm.invalid"
+      >
+        <span *ngIf="!isLoading">Sign In</span>
+        <span *ngIf="isLoading">
+          <span class="spinner"></span> Signing in...
+        </span>
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p>© 2024 Payment Recovery System. All rights reserved.</p>
+    </div>
+  </div>
+</div>
+

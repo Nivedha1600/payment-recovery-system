@@ -1,0 +1,21 @@
+# Java
+target/
+*.class
+*.log
+
+# Spring Tool Suite
+.settings/
+.project
+.classpath
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
