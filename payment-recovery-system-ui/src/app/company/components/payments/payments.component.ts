@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CompanyApiService } from '../../services/company-api.service';
 import { Payment, PaymentListResponse } from '../../models/payment.model';
 import { Invoice, InvoiceListResponse } from '../../models/invoice.model';
@@ -34,11 +35,21 @@ export class PaymentsComponent implements OnInit {
   };
   isMarkingPaid = false;
 
-  constructor(private companyApiService: CompanyApiService) {}
+  constructor(
+    private companyApiService: CompanyApiService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadPayments();
     this.loadPendingInvoices();
+  }
+
+  /**
+   * Go back to dashboard
+   */
+  goBack(): void {
+    this.router.navigate(['/company/dashboard']);
   }
 
   /**

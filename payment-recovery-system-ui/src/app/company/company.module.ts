@@ -6,10 +6,12 @@ import { SharedModule } from '../shared/shared.module';
 import { CompanyDashboardComponent } from './components/dashboard/dashboard.component';
 import { CustomersComponent } from './components/customers/customers.component';
 import { InvoicesComponent } from './components/invoices/invoices.component';
+import { InvoiceDetailComponent } from './components/invoice-detail/invoice-detail.component';
 import { DraftInvoicesComponent } from './components/draft-invoices/draft-invoices.component';
 import { DraftInvoiceReviewComponent } from './components/draft-invoice-review/draft-invoice-review.component';
 import { PaymentsComponent } from './components/payments/payments.component';
 import { InvoiceUploadComponent } from './components/invoice-upload/invoice-upload.component';
+import { ProfileComponent } from './components/profile/profile.component';
 
 /**
  * Company module
@@ -22,10 +24,12 @@ import { InvoiceUploadComponent } from './components/invoice-upload/invoice-uplo
     CompanyDashboardComponent,
     CustomersComponent,
     InvoicesComponent,
+    InvoiceDetailComponent,
     DraftInvoicesComponent,
     DraftInvoiceReviewComponent,
     PaymentsComponent,
-    InvoiceUploadComponent
+    InvoiceUploadComponent,
+    ProfileComponent
   ],
   imports: [
     CommonModule,

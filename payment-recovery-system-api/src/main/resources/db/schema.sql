@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS companies (
     name VARCHAR(255) NOT NULL,
     gst_number VARCHAR(50) UNIQUE,
     is_active BOOLEAN NOT NULL DEFAULT true,
+    is_approved BOOLEAN NOT NULL DEFAULT false,
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(20),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
@@ -14,6 +17,7 @@ CREATE TABLE IF NOT EXISTS companies (
 -- Create Indexes for Companies
 CREATE INDEX IF NOT EXISTS idx_company_gst_number ON companies(gst_number);
 CREATE INDEX IF NOT EXISTS idx_company_is_active ON companies(is_active);
+CREATE INDEX IF NOT EXISTS idx_company_is_approved ON companies(is_approved);
 
 -- Create Users Table
 CREATE TABLE IF NOT EXISTS users (

@@ -49,20 +49,29 @@ export class CompanyApiService {
   }
 
   /**
-   * Get draft invoices
-   */
-  getDraftInvoices(
-    page: number = 0,
-    pageSize: number = 10
-  ): Observable<InvoiceListResponse> {
-    return this.getInvoices(page, pageSize, 'DRAFT');
-  }
-
-  /**
    * Get invoice by ID
    */
   getInvoiceById(invoiceId: number): Observable<Invoice> {
     return this.http.get<Invoice>(`${this.apiUrl}/invoices/${invoiceId}`);
+  }
+
+  /**
+   * Get company profile
+   */
+  getCompanyProfile(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/profile`);
+  }
+
+  /**
+   * Update company profile
+   */
+  updateCompanyProfile(profileData: {
+    name: string;
+    gstNumber?: string;
+    contactEmail: string;
+    contactPhone?: string;
+  }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/profile`, profileData);
   }
 
   /**
@@ -122,34 +131,99 @@ export class CompanyApiService {
 
   /**
    * Upload invoice file
+   * Creates a DRAFT invoice
    */
-  uploadInvoiceFile(file: FormData, companyId: number, customerId?: number): Observable<{ invoiceId: number }> {
+  uploadInvoiceFile(file: FormData, companyId: number, customerId?: number): Observable<{ invoiceId: number; message?: string }> {
     // Add companyId and optional customerId to FormData
     file.append('companyId', companyId.toString());
     if (customerId) {
       file.append('customerId', customerId.toString());
     }
 
-    return this.http.post<{ invoiceId: number }>(`${this.apiUrl}/invoices/upload`, file);
+    // Use the correct endpoint: /api/invoices/upload (not /api/company/invoices/upload)
+    return this.http.post<{ invoiceId: number; message?: string }>(`${environment.apiUrl}/invoices/upload`, file);
   }
 
   /**
-   * Activate draft invoice
-   * Updates invoice with provided data and changes status from DRAFT to PENDING
+   * Confirm draft invoice
+   * Updates invoice with provided data and changes status from DRAFT to PENDING (ACTIVE)
    */
-  activateDraftInvoice(
+  confirmInvoice(
     invoiceId: number,
     invoiceNumber: string,
     invoiceDate: string,
-    dueDate: string | null,
-    amount: number
+    dueDate: string,
+    amount: number,
+    customerId?: number
   ): Observable<Invoice> {
-    return this.http.patch<Invoice>(`${this.apiUrl}/invoices/${invoiceId}/activate`, {
+    return this.http.post<Invoice>(`${environment.apiUrl}/invoices/${invoiceId}/confirm`, {
       invoiceNumber,
       invoiceDate,
       dueDate,
-      amount
+      amount,
+      customerId
     });
+  }
+
+  /**
+   * Get draft invoices for review
+   */
+  getDraftInvoices(): Observable<Invoice[]> {
+    const companyId = this.getCompanyIdFromToken();
+    if (!companyId) {
+      throw new Error('Company ID not found in token');
+    }
+    return this.http.get<Invoice[]>(`${environment.apiUrl}/invoices/drafts`, {
+      params: { companyId: companyId.toString() }
+    });
+  }
+
+  /**
+   * Create invoice manually (without file upload)
+   * Creates a DRAFT invoice with manually entered data
+   */
+  createInvoice(
+    invoiceNumber: string,
+    invoiceDate: string,
+    dueDate: string | null,
+    amount: number,
+    customerId?: number
+  ): Observable<{ invoiceId: number; message?: string }> {
+    const companyId = this.getCompanyIdFromToken();
+    if (!companyId) {
+      throw new Error('Company ID not found in token');
+    }
+
+    return this.http.post<{ invoiceId: number; message?: string }>(
+      `${environment.apiUrl}/invoices/create`,
+      {
+        invoiceNumber,
+        invoiceDate,
+        dueDate,
+        amount,
+        customerId
+      },
+      {
+        params: { companyId: companyId.toString() }
+      }
+    );
+  }
+
+  /**
+   * Get company ID from JWT token (helper method)
+   */
+  private getCompanyIdFromToken(): number | null {
+    // This will be handled by the HTTP interceptor, but we can also extract here
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      return null;
+    }
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.companyId || null;
+    } catch {
+      return null;
+    }
   }
 }
 

@@ -18,3 +18,19 @@ export interface AuthUser {
   token: string;
 }
 
+export interface CompanyRegistrationRequest {
+  companyName: string;
+  gstNumber?: string;
+  contactEmail: string;
+  contactPhone?: string;
+  username: string;
+  password: string;
+}
+
+export interface CompanyRegistrationResponse {
+  companyId: number;
+  companyName: string;
+  message: string;
+  requiresApproval: boolean;
+}
+

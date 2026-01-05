@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { CompanyApiService } from '../../services/company-api.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -35,13 +36,14 @@ export class InvoiceUploadComponent implements OnInit {
   errorMessage: string | null = null;
 
   // Accepted file types
-  acceptedFileTypes = '.pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx';
+  acceptedFileTypes = '.pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.csv';
   maxFileSize = 10 * 1024 * 1024; // 10MB
 
   constructor(
     private companyApiService: CompanyApiService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -57,7 +59,7 @@ export class InvoiceUploadComponent implements OnInit {
       
       // Validate file type
       if (!this.isValidFileType(file)) {
-        this.errorMessage = 'Invalid file type. Please upload PDF, Image, DOC, or Excel files.';
+        this.errorMessage = 'Invalid file type. Please upload PDF, Image, DOC, Excel, or CSV files.';
         return;
       }
 
@@ -87,10 +89,13 @@ export class InvoiceUploadComponent implements OnInit {
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv',
+      'application/csv',
+      'text/plain' // CSV files sometimes have text/plain MIME type
     ];
 
-    const validExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.doc', '.docx', '.xls', '.xlsx'];
+    const validExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.doc', '.docx', '.xls', '.xlsx', '.csv'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
 
     return validTypes.includes(file.type) || validExtensions.includes(fileExtension);
@@ -109,7 +114,8 @@ export class InvoiceUploadComponent implements OnInit {
       'doc': 'application/msword',
       'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'xls': 'application/vnd.ms-excel',
-      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'csv': 'text/csv'
     };
     return typeMap[extension || ''] || 'application/octet-stream';
   }
@@ -181,17 +187,13 @@ export class InvoiceUploadComponent implements OnInit {
     const formData = new FormData();
     formData.append('file', this.selectedFile);
     
-    // Get companyId from auth service
-    const user = this.authService.getCurrentUser();
-    if (!user) {
-      this.errorMessage = 'User not authenticated. Please login again.';
+    // Get companyId from JWT token
+    const companyId = this.authService.getCompanyId();
+    if (!companyId) {
+      this.errorMessage = 'Unable to determine company. Please login again.';
       this.isUploading = false;
       return;
     }
-    
-    // Note: Assuming companyId is stored in user object or token
-    // Adjust based on your auth service implementation
-    const companyId = (user as any).companyId || 1; // Fallback to 1 if not available
 
     // Call API to upload invoice file
     // Note: This endpoint should match the backend API
@@ -232,22 +234,38 @@ export class InvoiceUploadComponent implements OnInit {
     this.isUploading = true;
     this.errorMessage = null;
 
-    // TODO: Create manual invoice entry API call
-    // For now, this is a placeholder
-    // The backend should have an endpoint to create DRAFT invoice manually
-    console.log('Manual entry:', this.manualForm);
-    
-    // Simulate API call (replace with actual API call)
-    setTimeout(() => {
+    // Get companyId from JWT token
+    const companyId = this.authService.getCompanyId();
+    if (!companyId) {
+      this.errorMessage = 'Unable to determine company. Please login again.';
       this.isUploading = false;
-      this.uploadSuccess = true;
-      this.successMessage = 'Invoice created successfully as DRAFT!';
-      this.resetManualForm();
-      
-      setTimeout(() => {
-        this.uploadSuccess = false;
-      }, 5000);
-    }, 1000);
+      return;
+    }
+
+    // Call API to create DRAFT invoice manually
+    this.companyApiService.createInvoice(
+      this.manualForm.invoiceNumber,
+      this.manualForm.invoiceDate,
+      this.manualForm.dueDate || null,
+      this.manualForm.amount!,
+      this.manualForm.customerId || undefined
+    ).subscribe({
+      next: (response) => {
+        this.isUploading = false;
+        this.uploadSuccess = true;
+        this.successMessage = `Invoice created successfully as DRAFT! Invoice ID: ${response.invoiceId}`;
+        this.resetManualForm();
+        
+        setTimeout(() => {
+          this.uploadSuccess = false;
+        }, 5000);
+      },
+      error: (error) => {
+        this.isUploading = false;
+        this.errorMessage = error.error?.message || 'Failed to create invoice. Please try again.';
+        console.error('Error creating invoice:', error);
+      }
+    });
   }
 
   /**
@@ -281,6 +299,13 @@ export class InvoiceUploadComponent implements OnInit {
    */
   navigateToInvoices(): void {
     this.router.navigate(['/company/invoices']);
+  }
+
+  /**
+   * Go back to previous page
+   */
+  goBack(): void {
+    this.location.back();
   }
 
 }

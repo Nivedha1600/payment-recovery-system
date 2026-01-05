@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 /**
  * Customers Component
@@ -11,9 +12,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CustomersComponent implements OnInit {
 
-  constructor() { }
+  constructor(private router: Router) { }
 
   ngOnInit(): void {
+  }
+
+  /**
+   * Go back to dashboard
+   */
+  goBack(): void {
+    this.router.navigate(['/company/dashboard']);
   }
 
 }

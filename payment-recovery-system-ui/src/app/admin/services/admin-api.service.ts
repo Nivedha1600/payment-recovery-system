@@ -65,5 +65,19 @@ export class AdminApiService {
   deactivateCompany(companyId: number): Observable<Company> {
     return this.updateCompanyStatus(companyId, false);
   }
+
+  /**
+   * Approve company registration
+   */
+  approveCompany(companyId: number): Observable<Company> {
+    return this.http.post<Company>(`${this.apiUrl}/companies/${companyId}/approve`, {});
+  }
+
+  /**
+   * Reject company registration
+   */
+  rejectCompany(companyId: number): Observable<Company> {
+    return this.http.post<Company>(`${this.apiUrl}/companies/${companyId}/reject`, {});
+  }
 }
 

@@ -1,5 +1,6 @@
 package com.paymentrecovery.controller.api;
 
+import com.paymentrecovery.model.dto.request.CreateInvoiceRequest;
 import com.paymentrecovery.model.dto.request.ExtractedInvoiceDataRequest;
 import com.paymentrecovery.model.dto.request.MarkInvoicePaidRequest;
 import com.paymentrecovery.model.dto.response.InvoiceReminderDto;
@@ -143,7 +144,7 @@ public class InvoiceController {
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Upload invoice file",
-            description = "Uploads an invoice file (PDF, PNG, JPG, DOC, DOCX, XLS, XLSX) " +
+            description = "Uploads an invoice file (PDF, PNG, JPG, DOC, DOCX, XLS, XLSX, CSV) " +
                          "and creates a DRAFT invoice record. File is saved to local storage. " +
                          "Data extraction is not performed."
     )
@@ -205,6 +206,68 @@ public class InvoiceController {
     }
 
     /**
+     * Create a DRAFT invoice manually (without file upload)
+     * Used when user enters invoice data directly
+     *
+     * @param request CreateInvoiceRequest with invoice details
+     * @param companyId Company ID (from JWT token in production, query param for now)
+     * @return Invoice ID of created DRAFT invoice
+     */
+    @PostMapping("/create")
+    @Operation(
+            summary = "Create DRAFT invoice manually",
+            description = "Creates a DRAFT invoice with manually entered data (no file upload). " +
+                         "Invoice must be confirmed later to become active."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "DRAFT invoice created successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request data"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Company or Customer not found"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error"
+            )
+    })
+    public ResponseEntity<Map<String, Object>> createInvoice(
+            @Valid @RequestBody CreateInvoiceRequest request,
+            @RequestParam("companyId") Long companyId
+    ) {
+        log.info("Received manual invoice creation request for company: {}", companyId);
+
+        try {
+            // Create DRAFT invoice
+            Long invoiceId = invoiceService.createDraftInvoice(request, companyId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("invoiceId", invoiceId);
+            response.put("message", "DRAFT invoice created successfully");
+
+            log.info("DRAFT invoice created manually, invoice ID: {}", invoiceId);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid request: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            log.error("Entity not found: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            log.error("Error creating invoice", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * Store extracted invoice data from Python service
      * Stores data in JSON column, invoice remains in DRAFT status
      *
@@ -256,6 +319,104 @@ public class InvoiceController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             log.error("Error storing extracted data for invoice ID: {}", invoiceId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Confirm a DRAFT invoice and activate it
+     * Moves invoice from DRAFT to PENDING status (becomes eligible for reminders)
+     *
+     * @param invoiceId Invoice ID to confirm
+     * @param request ConfirmInvoiceRequest with invoice details
+     * @return Updated Invoice entity with PENDING status
+     */
+    @PostMapping("/{invoiceId}/confirm")
+    @Operation(
+            summary = "Confirm DRAFT invoice",
+            description = "Confirms a DRAFT invoice by updating its fields and changing status to PENDING. " +
+                         "Once confirmed, the invoice becomes eligible for automated reminders."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Invoice confirmed successfully",
+                    content = @Content(schema = @Schema(implementation = Invoice.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request data or invoice not in DRAFT status"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Invoice or Customer not found"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error"
+            )
+    })
+    public ResponseEntity<Invoice> confirmInvoice(
+            @PathVariable Long invoiceId,
+            @Valid @RequestBody com.paymentrecovery.model.dto.request.ConfirmInvoiceRequest request) {
+        log.info("Received request to confirm invoice ID: {}", invoiceId);
+
+        try {
+            Invoice confirmedInvoice = invoiceService.confirmInvoice(invoiceId, request);
+            
+            log.info("Successfully confirmed invoice ID: {}", invoiceId);
+            
+            return ResponseEntity.ok(confirmedInvoice);
+        } catch (jakarta.persistence.EntityNotFoundException e) {
+            log.error("Entity not found: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalStateException e) {
+            log.error("Invalid invoice status: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid request: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            log.error("Error confirming invoice ID: {}", invoiceId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Get all DRAFT invoices for review
+     * Returns invoices that need confirmation before becoming active
+     *
+     * @param companyId Company ID (from JWT token in production)
+     * @return List of DRAFT invoices
+     */
+    @GetMapping("/drafts")
+    @Operation(
+            summary = "Get DRAFT invoices",
+            description = "Retrieves all DRAFT invoices for a company that need review and confirmation."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully retrieved DRAFT invoices"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error"
+            )
+    })
+    public ResponseEntity<List<Invoice>> getDraftInvoices(
+            @RequestParam Long companyId) {
+        log.info("Received request to get DRAFT invoices for company ID: {}", companyId);
+
+        try {
+            List<Invoice> draftInvoices = invoiceService.getDraftInvoices(companyId);
+            
+            log.info("Successfully retrieved {} DRAFT invoices for company ID: {}", 
+                    draftInvoices.size(), companyId);
+            
+            return ResponseEntity.ok(draftInvoices);
+        } catch (Exception e) {
+            log.error("Error retrieving DRAFT invoices for company ID: {}", companyId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

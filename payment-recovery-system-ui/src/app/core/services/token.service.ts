@@ -81,6 +81,32 @@ export class TokenService {
   }
 
   /**
+   * Get company ID from JWT token
+   * Extracts companyId from the JWT token payload
+   */
+  getCompanyId(): number | null {
+    const token = this.getToken();
+    if (!token) {
+      return null;
+    }
+
+    try {
+      // JWT token structure: header.payload.signature
+      const payload = token.split('.')[1];
+      if (!payload) {
+        return null;
+      }
+
+      // Decode base64 payload
+      const decodedPayload = JSON.parse(atob(payload));
+      return decodedPayload.companyId || null;
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
+  }
+
+  /**
    * Clear all authentication data from localStorage
    */
   clear(): void {

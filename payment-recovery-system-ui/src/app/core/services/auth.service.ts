@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
-import { LoginRequest, LoginResponse, AuthUser } from '../models/auth.model';
+import { LoginRequest, LoginResponse, AuthUser, CompanyRegistrationRequest, CompanyRegistrationResponse } from '../models/auth.model';
 import { TokenService } from './token.service';
 import { environment } from '../../../environments/environment';
 
@@ -134,6 +134,27 @@ export class AuthService {
    */
   getToken(): string | null {
     return this.tokenService.getToken();
+  }
+
+  /**
+   * Get company ID from JWT token
+   */
+  getCompanyId(): number | null {
+    return this.tokenService.getCompanyId();
+  }
+
+  /**
+   * Register a new company
+   * @param registrationData Company registration data
+   * @returns Observable of registration response
+   */
+  registerCompany(registrationData: CompanyRegistrationRequest): Observable<CompanyRegistrationResponse> {
+    return this.http.post<CompanyRegistrationResponse>(`${this.apiUrl}/register`, registrationData).pipe(
+      catchError((error) => {
+        console.error('Registration error:', error);
+        return throwError(() => error);
+      })
+    );
   }
 }
 

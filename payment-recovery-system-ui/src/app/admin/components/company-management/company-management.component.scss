@@ -134,6 +134,12 @@
   }
 }
 
+.status-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -145,6 +151,11 @@
   &.active {
     background-color: #c6f6d5;
     color: #22543d;
+  }
+
+  &.pending-approval {
+    background-color: #fef3c7;
+    color: #92400e;
   }
 
   &.inactive {

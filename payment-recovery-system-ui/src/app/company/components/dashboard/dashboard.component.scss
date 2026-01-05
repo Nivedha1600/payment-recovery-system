@@ -16,6 +16,12 @@
     color: #1a202c;
     margin: 0;
   }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
 }
 
 .alert {
@@ -74,6 +80,16 @@
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 1px solid #667eea;
+    }
   }
 }
 
@@ -147,6 +163,26 @@
       }
     }
   }
+
+  .card-action {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #f7fafc;
+
+    .action-link {
+      color: #667eea;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #5568d3;
+      }
+    }
+  }
 }
 
 .btn {
@@ -157,6 +193,9 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 
   &.btn-primary {
     background-color: #667eea;
@@ -170,6 +209,29 @@
       background-color: #cbd5e0;
       cursor: not-allowed;
     }
+  }
+
+  &.btn-secondary {
+    background-color: #e2e8f0;
+    color: #4a5568;
+
+    &:hover {
+      background-color: #cbd5e0;
+    }
+  }
+
+  &.btn-success {
+    background-color: #22543d;
+    color: white;
+
+    &:hover {
+      background-color: #1a4332;
+    }
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
   }
 }
 

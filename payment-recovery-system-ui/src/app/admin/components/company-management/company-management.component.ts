@@ -126,6 +126,37 @@ export class CompanyManagementComponent implements OnInit {
   }
 
   /**
+   * Approve company registration
+   */
+  approveCompany(company: Company): void {
+    if (this.updatingCompanyId !== null) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to approve ${company.name}? This will allow their users to login.`)) {
+      return;
+    }
+
+    this.updatingCompanyId = company.id;
+
+    this.adminApiService.approveCompany(company.id)
+      .subscribe({
+        next: (updatedCompany) => {
+          const index = this.companies.findIndex(c => c.id === updatedCompany.id);
+          if (index !== -1) {
+            this.companies[index] = updatedCompany;
+          }
+          this.updatingCompanyId = null;
+        },
+        error: (error) => {
+          this.errorMessage = 'Failed to approve company. Please try again.';
+          this.updatingCompanyId = null;
+          console.error('Error approving company:', error);
+        }
+      });
+  }
+
+  /**
    * Go to next page
    */
   nextPage(): void {

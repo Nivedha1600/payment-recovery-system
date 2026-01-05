@@ -7,6 +7,25 @@
 .page-header {
   margin-bottom: 32px;
 
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1a202c;
+      margin: 0 0 8px 0;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #718096;
+      margin: 0;
+    }
+  }
+
   h1 {
     font-size: 32px;
     font-weight: 700;
@@ -19,6 +38,12 @@
     color: #718096;
     margin: 0;
   }
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .alert {

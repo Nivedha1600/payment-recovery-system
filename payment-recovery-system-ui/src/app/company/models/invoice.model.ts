@@ -3,13 +3,20 @@
  */
 export interface Invoice {
   id: number;
-  invoiceNumber: string;
-  invoiceDate: string;
-  dueDate: string;
-  amount: number;
+  invoiceNumber: string | null;
+  invoiceDate: string | null;
+  dueDate: string | null;
+  amount: number | null;
   status: 'DRAFT' | 'PENDING' | 'PARTIAL' | 'PAID';
-  customerName?: string;
-  customerId?: number;
+  customerName?: string | null;
+  customerId?: number | null;
+  customer?: {
+    id: number;
+    customerName: string;
+    companyName?: string;
+    email?: string;
+    phone?: string;
+  } | null;
   isOverdue?: boolean;
   daysOverdue?: number;
 }

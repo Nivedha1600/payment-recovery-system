@@ -12,13 +12,13 @@
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
   padding: 40px;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 
   h1 {
     font-size: 28px;
@@ -31,6 +31,43 @@
     font-size: 14px;
     color: #718096;
     margin: 0;
+  }
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background-color: #f7fafc;
+  padding: 4px;
+  border-radius: 8px;
+
+  .toggle-btn {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    background-color: transparent;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      color: #4a5568;
+    }
+
+    &.active {
+      background-color: white;
+      color: #667eea;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 }
 
@@ -50,6 +87,12 @@
     background-color: #fee;
     color: #c53030;
     border: 1px solid #feb2b2;
+  }
+
+  &.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
   }
 }
 
@@ -143,6 +186,25 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+.registration-info {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #f7fafc;
+  border-radius: 8px;
+  border-left: 3px solid #667eea;
+
+  .info-text {
+    font-size: 12px;
+    color: #4a5568;
+    margin: 0;
+    line-height: 1.5;
+
+    strong {
+      color: #2d3748;
+    }
   }
 }
 

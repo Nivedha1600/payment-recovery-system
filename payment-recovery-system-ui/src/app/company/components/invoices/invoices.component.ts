@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CompanyApiService } from '../../services/company-api.service';
 import { Invoice, InvoiceListResponse } from '../../models/invoice.model';
 
@@ -27,10 +28,20 @@ export class InvoicesComponent implements OnInit {
     { value: 'PAID', label: 'Paid' }
   ];
 
-  constructor(private companyApiService: CompanyApiService) {}
+  constructor(
+    private companyApiService: CompanyApiService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.loadInvoices();
+    // Check for status query parameter from URL
+    this.route.queryParams.subscribe(params => {
+      if (params['status']) {
+        this.selectedStatus = params['status'].toUpperCase();
+      }
+      this.loadInvoices();
+    });
   }
 
   /**
@@ -45,7 +56,11 @@ export class InvoicesComponent implements OnInit {
     this.companyApiService.getInvoices(this.currentPage, this.pageSize, status)
       .subscribe({
         next: (response: InvoiceListResponse) => {
-          this.invoices = response.invoices;
+          // Map invoices to extract customerName from customer object if needed
+          this.invoices = response.invoices.map(invoice => ({
+            ...invoice,
+            customerName: invoice.customerName || invoice.customer?.customerName || null
+          }));
           this.totalInvoices = response.total;
           this.isLoading = false;
         },
@@ -69,8 +84,15 @@ export class InvoicesComponent implements OnInit {
    * View invoice details
    */
   viewInvoice(invoice: Invoice): void {
-    // TODO: Navigate to invoice detail page
-    console.log('View invoice:', invoice.id);
+    // Navigate to invoice detail page
+    this.router.navigate(['/company/invoices', invoice.id]);
+  }
+
+  /**
+   * Go back to dashboard
+   */
+  goBack(): void {
+    this.router.navigate(['/company/dashboard']);
   }
 
   /**
@@ -81,7 +103,13 @@ export class InvoicesComponent implements OnInit {
       return;
     }
 
-    const confirmMessage = `Are you sure you want to mark invoice ${invoice.invoiceNumber} as paid?`;
+    // Validate amount is available
+    if (!invoice.amount || invoice.amount <= 0) {
+      this.errorMessage = 'Cannot mark invoice as paid: Invalid amount.';
+      return;
+    }
+
+    const confirmMessage = `Are you sure you want to mark invoice ${invoice.invoiceNumber || 'N/A'} as paid?`;
     if (!confirm(confirmMessage)) {
       return;
     }
@@ -147,7 +175,10 @@ export class InvoicesComponent implements OnInit {
   /**
    * Format currency
    */
-  formatCurrency(value: number): string {
+  formatCurrency(value: number | null | undefined): string {
+    if (value === null || value === undefined || isNaN(value)) {
+      return '$0.00';
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
@@ -157,12 +188,24 @@ export class InvoicesComponent implements OnInit {
   /**
    * Format date
    */
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  formatDate(dateString: string | null | undefined): string {
+    if (!dateString) {
+      return 'N/A';
+    }
+    try {
+      const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return 'N/A';
+      }
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'N/A';
+    }
   }
 
   /**

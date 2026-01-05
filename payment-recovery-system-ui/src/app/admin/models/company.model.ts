@@ -6,6 +6,7 @@ export interface Company {
   name: string;
   gstNumber?: string;
   isActive: boolean;
+  isApproved?: boolean;
   createdAt: string;
   updatedAt?: string;
   userCount?: number;

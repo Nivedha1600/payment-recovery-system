@@ -16,6 +16,12 @@
     color: #1a202c;
     margin: 0;
   }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
 }
 
 .alert {
@@ -163,6 +169,9 @@
   background-color: #f7fafc;
   padding: 20px 24px;
   border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
   h2 {
     font-size: 20px;
@@ -256,6 +265,9 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 
   &.btn-primary {
     background-color: #667eea;
@@ -269,6 +281,20 @@
       background-color: #cbd5e0;
       cursor: not-allowed;
     }
+  }
+
+  &.btn-secondary {
+    background-color: #e2e8f0;
+    color: #4a5568;
+
+    &:hover {
+      background-color: #cbd5e0;
+    }
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
   }
 }
 

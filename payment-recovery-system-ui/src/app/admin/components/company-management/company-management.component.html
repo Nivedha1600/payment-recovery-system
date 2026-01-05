@@ -58,9 +58,14 @@
             <span *ngIf="!company.gstNumber" class="text-muted">-</span>
           </td>
           <td>
-            <span class="status-badge" [class.active]="company.isActive" [class.inactive]="!company.isActive">
-              {{ company.isActive ? 'Active' : 'Inactive' }}
-            </span>
+            <div class="status-badges">
+              <span class="status-badge" [class.active]="company.isActive" [class.inactive]="!company.isActive">
+                {{ company.isActive ? 'Active' : 'Inactive' }}
+              </span>
+              <span *ngIf="company.isApproved === false" class="status-badge pending-approval" title="Pending Admin Approval">
+                Pending Approval
+              </span>
+            </div>
           </td>
           <td>{{ company.userCount ?? 0 }}</td>
           <td>{{ company.invoiceCount ?? 0 }}</td>
@@ -68,7 +73,17 @@
           <td>
             <div class="action-buttons">
               <button
-                *ngIf="company.isActive"
+                *ngIf="company.isApproved === false"
+                class="btn btn-primary btn-sm"
+                (click)="approveCompany(company)"
+                [disabled]="updatingCompanyId === company.id"
+                title="Approve Company Registration"
+              >
+                <span *ngIf="updatingCompanyId !== company.id">Approve</span>
+                <span *ngIf="updatingCompanyId === company.id">...</span>
+              </button>
+              <button
+                *ngIf="company.isActive && company.isApproved !== false"
                 class="btn btn-danger btn-sm"
                 (click)="deactivateCompany(company)"
                 [disabled]="updatingCompanyId === company.id"
@@ -78,7 +93,7 @@
                 <span *ngIf="updatingCompanyId === company.id">...</span>
               </button>
               <button
-                *ngIf="!company.isActive"
+                *ngIf="!company.isActive && company.isApproved !== false"
                 class="btn btn-success btn-sm"
                 (click)="activateCompany(company)"
                 [disabled]="updatingCompanyId === company.id"

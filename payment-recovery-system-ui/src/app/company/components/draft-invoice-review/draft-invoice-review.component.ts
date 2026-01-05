@@ -75,12 +75,12 @@ export class DraftInvoiceReviewComponent implements OnInit {
 
           this.draftInvoice = {
             id: invoice.id,
-            invoiceNumber: invoice.invoiceNumber,
-            invoiceDate: invoice.invoiceDate,
-            dueDate: invoice.dueDate,
-            amount: invoice.amount,
-            customerId: invoice.customerId,
-            customerName: invoice.customerName,
+            invoiceNumber: invoice.invoiceNumber ?? undefined,
+            invoiceDate: invoice.invoiceDate ?? undefined,
+            dueDate: invoice.dueDate ?? undefined,
+            amount: invoice.amount ?? undefined,
+            customerId: invoice.customerId ?? undefined,
+            customerName: invoice.customerName ?? undefined,
             status: 'DRAFT',
             extractedData: this.extractedData
           };
@@ -187,12 +187,13 @@ export class DraftInvoiceReviewComponent implements OnInit {
       return;
     }
 
-    this.companyApiService.activateDraftInvoice(
+    this.companyApiService.confirmInvoice(
       this.invoiceId,
       this.formData.invoiceNumber,
       this.formData.invoiceDate,
-      this.formData.dueDate || null,
-      this.formData.amount!
+      this.formData.dueDate || '',
+      this.formData.amount!,
+      this.draftInvoice?.customerId
     ).subscribe({
       next: () => {
         this.isSaving = false;

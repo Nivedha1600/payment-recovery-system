@@ -13,7 +13,7 @@ import java.util.List;
 public class InvoiceFileTypeValidator {
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(
-            "pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx"
+            "pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx", "csv"
     );
 
     private static final List<String> ALLOWED_MIME_TYPES = Arrays.asList(
@@ -24,7 +24,10 @@ public class InvoiceFileTypeValidator {
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "text/csv",
+            "application/csv",
+            "text/plain" // CSV files sometimes have text/plain MIME type
     );
 
     /**

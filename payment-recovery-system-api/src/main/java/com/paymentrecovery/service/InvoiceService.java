@@ -107,6 +107,55 @@ public class InvoiceService {
     }
 
     /**
+     * Create a DRAFT invoice manually (without file upload)
+     * Used when user enters invoice data directly
+     *
+     * @param request CreateInvoiceRequest with invoice details
+     * @param companyId Company ID
+     * @return Created invoice ID
+     */
+    @Transactional
+    public Long createDraftInvoice(com.paymentrecovery.model.dto.request.CreateInvoiceRequest request, Long companyId) {
+        log.info("Creating DRAFT invoice manually for company: {}", companyId);
+
+        // Validate company exists
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
+                        "Company not found with ID: " + companyId));
+
+        // Validate customer if provided
+        Customer customer = null;
+        if (request.getCustomerId() != null) {
+            customer = customerRepository.findById(request.getCustomerId())
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
+                            "Customer not found with ID: " + request.getCustomerId()));
+            
+            // Verify customer belongs to company
+            if (!customer.getCompany().getId().equals(companyId)) {
+                throw new IllegalArgumentException("Customer does not belong to the specified company");
+            }
+        }
+
+        // Create DRAFT invoice
+        Invoice invoice = new Invoice();
+        invoice.setCompany(company);
+        invoice.setCustomer(customer);
+        invoice.setInvoiceNumber(request.getInvoiceNumber());
+        invoice.setInvoiceDate(request.getInvoiceDate());
+        invoice.setDueDate(request.getDueDate());
+        invoice.setAmount(request.getAmount());
+        invoice.setStatus(InvoiceStatus.DRAFT);
+        // No file path for manual entry
+
+        // Save invoice
+        Invoice savedInvoice = invoiceRepository.save(invoice);
+
+        log.info("DRAFT invoice created manually with ID: {} for company: {}", savedInvoice.getId(), companyId);
+
+        return savedInvoice.getId();
+    }
+
+    /**
      * Find all invoices with PENDING status
      * Returns minimal fields required for reminders
      *
@@ -193,6 +242,90 @@ public class InvoiceService {
         log.info("Successfully stored extracted data for invoice ID: {}", invoiceId);
 
         return updatedInvoice;
+    }
+
+    /**
+     * Confirm a DRAFT invoice and activate it
+     * Moves invoice from DRAFT to PENDING status (ACTIVE in business terms)
+     * Invoice becomes eligible for reminders after confirmation
+     *
+     * @param invoiceId Invoice ID to confirm
+     * @param request Confirmation request with invoice details
+     * @return Updated Invoice entity with PENDING status
+     * @throws jakarta.persistence.EntityNotFoundException if invoice not found
+     * @throws IllegalStateException if invoice is not in DRAFT status
+     */
+    @Transactional
+    public Invoice confirmInvoice(Long invoiceId, com.paymentrecovery.model.dto.request.ConfirmInvoiceRequest request) {
+        log.info("Confirming invoice ID: {}", invoiceId);
+
+        // Fetch invoice
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> {
+                    log.error("Invoice not found with ID: {}", invoiceId);
+                    return new jakarta.persistence.EntityNotFoundException(
+                            "Invoice not found with ID: " + invoiceId);
+                });
+
+        // Verify invoice is in DRAFT status
+        if (invoice.getStatus() != InvoiceStatus.DRAFT) {
+            log.warn("Invoice ID: {} is not in DRAFT status, current status: {}", 
+                    invoiceId, invoice.getStatus());
+            throw new IllegalStateException(
+                    "Can only confirm DRAFT invoices. Current status: " + invoice.getStatus());
+        }
+
+        // Update invoice fields from confirmation request
+        invoice.setInvoiceNumber(request.getInvoiceNumber());
+        invoice.setInvoiceDate(request.getInvoiceDate());
+        invoice.setDueDate(request.getDueDate());
+        invoice.setAmount(request.getAmount());
+
+        // Update customer if provided
+        if (request.getCustomerId() != null) {
+            Customer customer = customerRepository.findById(request.getCustomerId())
+                    .orElseThrow(() -> {
+                        log.error("Customer not found with ID: {}", request.getCustomerId());
+                        return new jakarta.persistence.EntityNotFoundException(
+                                "Customer not found with ID: " + request.getCustomerId());
+                    });
+            
+            // Verify customer belongs to invoice's company
+            if (!customer.getCompany().getId().equals(invoice.getCompany().getId())) {
+                throw new IllegalArgumentException("Customer does not belong to the invoice's company");
+            }
+            
+            invoice.setCustomer(customer);
+        }
+
+        // Change status from DRAFT to PENDING (ACTIVE)
+        invoice.setStatus(InvoiceStatus.PENDING);
+
+        // Save invoice
+        Invoice confirmedInvoice = invoiceRepository.save(invoice);
+
+        log.info("Successfully confirmed invoice ID: {}. Status changed from DRAFT to PENDING. " +
+                "Invoice is now eligible for reminders.", invoiceId);
+
+        return confirmedInvoice;
+    }
+
+    /**
+     * Get all DRAFT invoices for a company
+     * Used for review and confirmation workflow
+     *
+     * @param companyId Company ID
+     * @return List of DRAFT invoices
+     */
+    @Transactional(readOnly = true)
+    public List<Invoice> getDraftInvoices(Long companyId) {
+        log.debug("Fetching DRAFT invoices for company ID: {}", companyId);
+        
+        List<Invoice> draftInvoices = invoiceRepository.findByCompanyIdAndStatus(companyId, InvoiceStatus.DRAFT);
+        
+        log.info("Found {} DRAFT invoices for company ID: {}", draftInvoices.size(), companyId);
+        
+        return draftInvoices;
     }
 
     /**

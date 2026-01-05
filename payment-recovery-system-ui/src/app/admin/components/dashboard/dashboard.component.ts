@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AdminApiService } from '../../services/admin-api.service';
 import { PlatformMetrics } from '../../models/dashboard.model';
 import { Company } from '../../models/company.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 /**
  * Admin Dashboard Component
@@ -18,7 +20,11 @@ export class AdminDashboardComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
 
-  constructor(private adminApiService: AdminApiService) {}
+  constructor(
+    private adminApiService: AdminApiService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadMetrics();
@@ -61,14 +67,6 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   /**
-   * Refresh metrics
-   */
-  refresh(): void {
-    this.loadMetrics();
-    this.loadCompanies();
-  }
-
-  /**
    * Format number with commas
    */
   formatNumber(value: number): string {
@@ -84,6 +82,20 @@ export class AdminDashboardComponent implements OnInit {
       month: 'short',
       day: 'numeric'
     });
+  }
+
+  /**
+   * Logout user
+   */
+  logout(): void {
+    this.authService.logout();
+  }
+
+  /**
+   * Navigate to company management page
+   */
+  navigateToCompanies(): void {
+    this.router.navigate(['/admin/companies']);
   }
 }
 

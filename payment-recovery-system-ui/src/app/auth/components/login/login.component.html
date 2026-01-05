@@ -2,11 +2,33 @@
   <div class="login-card">
     <div class="login-header">
       <h1>Payment Recovery System</h1>
-      <p>Sign in to your account</p>
+      <p>{{ isRegistrationMode ? 'Register your company' : 'Sign in to your account' }}</p>
+    </div>
+
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="!isRegistrationMode"
+        (click)="toggleMode()"
+        [disabled]="isLoading"
+      >
+        Login
+      </button>
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="isRegistrationMode"
+        (click)="toggleMode()"
+        [disabled]="isLoading"
+      >
+        Register Company
+      </button>
     </div>
 
     <!-- Session Expired Message -->
-    <div *ngIf="sessionExpired" class="alert alert-warning" role="alert">
+    <div *ngIf="sessionExpired && !isRegistrationMode" class="alert alert-warning" role="alert">
       Your session has expired. Please login again.
     </div>
 
@@ -15,7 +37,13 @@
       {{ errorMessage }}
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="alert alert-success" role="alert">
+      {{ successMessage }}
+    </div>
+
+    <!-- Login Form -->
+    <form *ngIf="!isRegistrationMode" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
       <!-- Username Field -->
       <div class="form-group">
         <label for="username">Username</label>
@@ -73,6 +101,164 @@
           <span class="spinner"></span> Signing in...
         </span>
       </button>
+    </form>
+
+    <!-- Registration Form -->
+    <form *ngIf="isRegistrationMode" [formGroup]="registrationForm" (ngSubmit)="onRegister()" class="login-form">
+      <!-- Company Name Field -->
+      <div class="form-group">
+        <label for="companyName">Company Name *</label>
+        <input
+          type="text"
+          id="companyName"
+          formControlName="companyName"
+          class="form-control"
+          [class.invalid]="rf['companyName'].invalid && rf['companyName'].touched"
+          placeholder="Enter your company name"
+          autocomplete="organization"
+        />
+        <div
+          *ngIf="rf['companyName'].invalid && rf['companyName'].touched"
+          class="error-message"
+        >
+          <span *ngIf="rf['companyName'].errors?.['required']">Company name is required</span>
+          <span *ngIf="rf['companyName'].errors?.['minlength']">
+            Company name must be at least 2 characters
+          </span>
+        </div>
+      </div>
+
+      <!-- GST Number Field -->
+      <div class="form-group">
+        <label for="gstNumber">GST Number (Optional)</label>
+        <input
+          type="text"
+          id="gstNumber"
+          formControlName="gstNumber"
+          class="form-control"
+          [class.invalid]="rf['gstNumber'].invalid && rf['gstNumber'].touched"
+          placeholder="Enter GST number (optional)"
+        />
+        <div
+          *ngIf="rf['gstNumber'].invalid && rf['gstNumber'].touched"
+          class="error-message"
+        >
+          <span *ngIf="rf['gstNumber'].errors?.['maxlength']">
+            GST number must not exceed 50 characters
+          </span>
+        </div>
+      </div>
+
+      <!-- Contact Email Field -->
+      <div class="form-group">
+        <label for="contactEmail">Contact Email *</label>
+        <input
+          type="email"
+          id="contactEmail"
+          formControlName="contactEmail"
+          class="form-control"
+          [class.invalid]="rf['contactEmail'].invalid && rf['contactEmail'].touched"
+          placeholder="Enter contact email"
+          autocomplete="email"
+        />
+        <div
+          *ngIf="rf['contactEmail'].invalid && rf['contactEmail'].touched"
+          class="error-message"
+        >
+          <span *ngIf="rf['contactEmail'].errors?.['required']">Contact email is required</span>
+          <span *ngIf="rf['contactEmail'].errors?.['email']">
+            Please enter a valid email address
+          </span>
+        </div>
+      </div>
+
+      <!-- Contact Phone Field -->
+      <div class="form-group">
+        <label for="contactPhone">Contact Phone (Optional)</label>
+        <input
+          type="tel"
+          id="contactPhone"
+          formControlName="contactPhone"
+          class="form-control"
+          [class.invalid]="rf['contactPhone'].invalid && rf['contactPhone'].touched"
+          placeholder="Enter contact phone (optional)"
+          autocomplete="tel"
+        />
+        <div
+          *ngIf="rf['contactPhone'].invalid && rf['contactPhone'].touched"
+          class="error-message"
+        >
+          <span *ngIf="rf['contactPhone'].errors?.['maxlength']">
+            Phone number must not exceed 20 characters
+          </span>
+        </div>
+      </div>
+
+      <!-- Username Field -->
+      <div class="form-group">
+        <label for="regUsername">Username *</label>
+        <input
+          type="text"
+          id="regUsername"
+          formControlName="username"
+          class="form-control"
+          [class.invalid]="rf['username'].invalid && rf['username'].touched"
+          placeholder="Choose a username"
+          autocomplete="username"
+        />
+        <div
+          *ngIf="rf['username'].invalid && rf['username'].touched"
+          class="error-message"
+        >
+          <span *ngIf="rf['username'].errors?.['required']">Username is required</span>
+          <span *ngIf="rf['username'].errors?.['minlength']">
+            Username must be at least 3 characters
+          </span>
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="regPassword">Password *</label>
+        <input
+          type="password"
+          id="regPassword"
+          formControlName="password"
+          class="form-control"
+          [class.invalid]="rf['password'].invalid && rf['password'].touched"
+          placeholder="Choose a password"
+          autocomplete="new-password"
+        />
+        <div
+          *ngIf="rf['password'].invalid && rf['password'].touched"
+          class="error-message"
+        >
+          <span *ngIf="rf['password'].errors?.['required']">Password is required</span>
+          <span *ngIf="rf['password'].errors?.['minlength']">
+            Password must be at least 6 characters
+          </span>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="isLoading || registrationForm.invalid"
+      >
+        <span *ngIf="!isLoading">Register Company</span>
+        <span *ngIf="isLoading">
+          <span class="spinner"></span> Registering...
+        </span>
+      </button>
+
+      <!-- Registration Info -->
+      <div class="registration-info">
+        <p class="info-text">
+          <strong>Note:</strong> Your registration will be reviewed by an administrator. 
+          You will be able to login once your account is approved.
+        </p>
+      </div>
     </form>
 
     <!-- Footer -->

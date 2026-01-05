@@ -1,0 +1,4 @@
+InvoiceNumber,InvoiceDate,DueDate,CustomerName,CustomerCompany,Amount
+INV-1001,2025-01-01,2025-01-31,Arun Kumar,Arun Engineering,45000
+INV-1002,2025-01-05,2025-02-04,Suresh Raj,Sri Tools Pvt Ltd,72000
+INV-1003,2025-01-10,2025-01-25,Ramesh Iyer,Iyer Industries,30000

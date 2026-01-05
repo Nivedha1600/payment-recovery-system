@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CompanyApiService } from '../../services/company-api.service';
 import { CompanyDashboardMetrics } from '../../models/dashboard.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 /**
  * Company Dashboard Component
@@ -16,7 +18,11 @@ export class CompanyDashboardComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
 
-  constructor(private companyApiService: CompanyApiService) {}
+  constructor(
+    private companyApiService: CompanyApiService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadMetrics();
@@ -43,13 +49,6 @@ export class CompanyDashboardComponent implements OnInit {
   }
 
   /**
-   * Refresh metrics
-   */
-  refresh(): void {
-    this.loadMetrics();
-  }
-
-  /**
    * Format number with commas
    */
   formatNumber(value: number): string {
@@ -64,6 +63,32 @@ export class CompanyDashboardComponent implements OnInit {
       style: 'currency',
       currency: 'USD'
     }).format(value);
+  }
+
+  /**
+   * Navigate to invoice upload page
+   */
+  navigateToUpload(): void {
+    this.router.navigate(['/company/invoices/upload']);
+  }
+
+  /**
+   * Navigate to invoices list page
+   * Optionally filter by status
+   */
+  navigateToInvoices(status?: string): void {
+    if (status) {
+      this.router.navigate(['/company/invoices'], { queryParams: { status } });
+    } else {
+      this.router.navigate(['/company/invoices']);
+    }
+  }
+
+  /**
+   * Logout user
+   */
+  logout(): void {
+    this.authService.logout();
   }
 }
 

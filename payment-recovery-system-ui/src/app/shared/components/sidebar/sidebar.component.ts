@@ -39,6 +39,11 @@ export class SidebarComponent implements OnInit {
       route: '/company/dashboard'
     },
     {
+      label: 'Upload Invoice',
+      icon: 'upload',
+      route: '/company/invoices/upload'
+    },
+    {
       label: 'Invoices',
       icon: 'receipt',
       route: '/company/invoices'
@@ -57,6 +62,11 @@ export class SidebarComponent implements OnInit {
       label: 'Payments',
       icon: 'payment',
       route: '/company/payments'
+    },
+    {
+      label: 'Profile',
+      icon: 'user',
+      route: '/company/profile'
     }
   ];
 
